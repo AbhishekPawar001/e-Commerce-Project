@@ -13,7 +13,7 @@ import lombok.Setter;
 @Data
 public class UserDTO {
 	
-	private long accountNo;
+	private Long accountNo;
 	private String accountType;
 	private int currentBalance;
 	private LocalDateTime createdDate;

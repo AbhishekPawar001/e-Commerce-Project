@@ -11,7 +11,7 @@ public interface TransactionService {
 
 	public TransactionEntity saveTransaction(TransactionEntity transaction);
 	
-	public List<TransactionEntity> findByMonthAndYear(int month, int year, long accountNo);
+	public List<TransactionEntity> findByMonthAndYear(int month, int year, Long accountNo);
 
 //	public List<TransactionEntity> findByAccountNo(long accountNo);
 

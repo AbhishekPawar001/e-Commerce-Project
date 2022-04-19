@@ -12,10 +12,10 @@ import com.banking.dto.UserDTO;
 
 import lombok.Data;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Getter
-@Setter
+@NoArgsConstructor
 @Data
 @Entity
 @Table(name = "user")
@@ -30,8 +30,6 @@ public class UserEntity {
 	private String mobile;
 	private String gender;
 	private int age;
-//	private long accountNo;
-//	private String accountType;
 	private LocalDateTime createdDate;
 	
 	public UserEntity(UserDTO userdto) {
@@ -42,7 +40,5 @@ public class UserEntity {
 		this.age = userdto.getAge();
 		this.gender = userdto.getGender();
 		this.createdDate = userdto.getCreatedDate();
-//		this.accountNo = userdto.getAccountNo();
-//		this.accountType = userdto.getAccountType();
 	}
 }

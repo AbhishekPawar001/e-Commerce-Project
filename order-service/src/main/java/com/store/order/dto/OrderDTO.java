@@ -10,12 +10,10 @@ import lombok.Data;
 public class OrderDTO {
 	
 	private Long userId;
-	private Long accountNumber;
 	private List<OrderItem> products;
 	
-	public OrderDTO(Long fromAccountNumber, Long userId, List<OrderItem> list) {
+	public OrderDTO(Long userId, List<OrderItem> list) {
 		this.userId = userId;
-		this.accountNumber = fromAccountNumber;
 		this.products = list;
 	}
 }

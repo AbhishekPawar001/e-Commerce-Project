@@ -8,12 +8,14 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Setter
-@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 @Data
 @Entity
 @Table(name = "transactions")
@@ -22,8 +24,8 @@ public class TransactionEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private long id;
-	private long fromAccountNo;
-	private long toAccountNo;
+	private Long fromAccountNo;
+	private Long toAccountNo;
 	private String comment;
 	private int amount;
 	private LocalDateTime createdDate;

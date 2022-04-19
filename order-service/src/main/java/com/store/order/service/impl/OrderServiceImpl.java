@@ -1,0 +1,122 @@
+package com.store.order.service.impl;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.store.order.dto.OrderDTO;
+import com.store.order.dto.PaymentDTO;
+import com.store.order.dto.ProductDTO;
+import com.store.order.exceptions.OrderNotFoundException;
+import com.store.order.exceptions.UserNotFoundException;
+import com.store.order.feignClients.BankFeignClient;
+import com.store.order.feignClients.ProductFeignClient;
+import com.store.order.feignClients.UserFeignClient;
+import com.store.order.model.OrderItem;
+import com.store.order.model.Orders;
+import com.store.order.repository.OrderRepository;
+import com.store.order.service.OrderService;
+import com.store.order.vo.OrderRequest;
+import com.store.order.vo.OrderResponse;
+import com.store.order.vo.Product;
+import com.store.order.vo.ProductRequest;
+import com.store.order.vo.User;
+
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Service
+public class OrderServiceImpl implements OrderService{
+	
+	@Autowired
+	private OrderRepository orderRepository;
+	@Autowired
+	private ProductFeignClient productFeignClient;
+	@Autowired
+	private UserFeignClient userFeignClient;
+	@Autowired
+	private BankFeignClient bankFeignClient;
+	
+	@Override
+	public String saveOrder(OrderRequest orderRequest) throws UserNotFoundException {
+		Double grandTotal = (double) 0;
+		String msg = "";
+		log.info("Finding the user from User Service APi using feignClient");
+		User user = userFeignClient.getUser(orderRequest.getUserId());
+		if(user != null) {
+			List<ProductRequest> products = orderRequest.getProducts();
+			List<Double> priceList = new ArrayList<Double>();
+			List<OrderItem> list = new ArrayList<OrderItem>();
+
+			log.info("Iterate the products and passing product id using feignclient to get the price of related products");
+			for (ProductRequest product : products) {
+				OrderItem orderItem = new OrderItem();
+				list.add(orderItem);
+				priceList = productFeignClient.getProductById(product.getProductId());
+				for (Double priceLists : priceList) {
+					grandTotal+= priceLists*product.getQuantity();
+					orderItem.setProductPrice(priceLists);
+					orderItem.setProductId(product.getProductId());
+					orderItem.setQuantity(product.getQuantity());
+				}
+			}			
+			OrderDTO orderDTO = new OrderDTO(orderRequest.getUserId(),list);
+			Orders orders = new Orders(orderDTO);
+			log.info("save order instance in Database");
+			Orders order = orderRepository.save(orders);
+			if (order == null) {
+				msg = "Order not placed please try again";
+			} else {
+				String value = bankFeignClient.checkAccountNumber(orderRequest.getAccountNumber());
+				if(value == null) {
+					throw new UserNotFoundException("Invalid! Account Details");
+				} else {
+					PaymentDTO paymentDTO = new PaymentDTO(orderRequest.getAccountNumber(), grandTotal);
+					PaymentDTO payment = bankFeignClient.transfer(paymentDTO);
+					if(payment == null) {
+						msg = "payment failed please check your account details";
+					} else {
+						msg = "Order placed successfully for Order Id: "+order.getOrderId(); 
+					}
+				}
+			}
+		} else {
+			throw new UserNotFoundException("User not registered with id: "+orderRequest.getUserId());
+		}
+		return msg;
+	}
+	
+	@Override
+	public OrderResponse getOrderById(Long orderId) throws OrderNotFoundException {
+		OrderResponse orderResponse;
+		Double grandTotal = (double) 0;
+		log.info("finding orders from Database");
+		Optional<Orders> order = orderRepository.findByOrderId(orderId);
+		List<ProductDTO> productAOList = new ArrayList<ProductDTO>();
+		if(order.isPresent()) {
+			log.info("check whether the order is present in database or not");
+			Orders orders = order.get();
+			log.info("using feignClient get all the produtcs from database");
+			for(OrderItem orderList : orders.getProducts()) {
+				ProductDTO productDTO = new ProductDTO();
+				productAOList.add(productDTO);
+				List<Product> productList = productFeignClient.getAllProductById(orderList.getProductId());
+				for(Product list : productList) {
+					grandTotal+= list.getPrice()*orderList.getQuantity();
+					productDTO.setProductId(list.getProductId());
+					productDTO.setProductName(list.getProductName());
+					productDTO.setProductDescription(list.getProductDescription());
+					productDTO.setProductPrice(list.getPrice());
+					productDTO.setQuantity(orderList.getQuantity());
+				}
+			}
+			orderResponse = new OrderResponse(orders, grandTotal, productAOList);
+		} else {
+			throw new OrderNotFoundException("Order Not found with id: "+orderId);
+		}
+		return orderResponse;
+	}
+}

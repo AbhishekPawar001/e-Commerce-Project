@@ -21,7 +21,7 @@ public class TransactionServiceImpl implements TransactionService{
 	}
 
 	@Override
-	public List<TransactionEntity> findByMonthAndYear(int month, int year, long accountNo) {
+	public List<TransactionEntity> findByMonthAndYear(int month, int year, Long accountNo) {
 		return transactionRepository.findByMonthAndYear(month, year, accountNo);
 	}
 

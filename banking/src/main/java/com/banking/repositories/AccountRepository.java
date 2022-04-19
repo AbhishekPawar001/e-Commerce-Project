@@ -15,10 +15,12 @@ public interface AccountRepository extends JpaRepository<AccountEntity, Long>{
 	List<AccountEntity> getUserAccountsByAccountNo(long accountNo);
 	
 	@Query(value = "SELECT current_balance FROM account WHERE account_no = :accountNo", nativeQuery = true)
-	int getAccountBalanceByAccountNo(long accountNo);
+	int getAccountBalanceByAccountNo(Long accountNo);
 	
 	@Modifying
 	@Transactional
 	@Query(value = "UPDATE account SET current_balance = :newBalance, last_updated_date = :lastUpdatedDate WHERE account_no = :accountNo", nativeQuery = true)
-	void updateAccountBalanceByAccountNo(int newBalance, long accountNo, LocalDateTime lastUpdatedDate);
+	void updateAccountBalanceByAccountNo(int newBalance, Long accountNo, LocalDateTime lastUpdatedDate);
+
+	AccountEntity findByAccountNo(Long accountNumber);
 }

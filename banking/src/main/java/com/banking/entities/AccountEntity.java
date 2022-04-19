@@ -14,11 +14,11 @@ import com.banking.dto.UserDTO;
 
 import lombok.Data;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Setter
-@Getter
+@NoArgsConstructor
 @Data
 @Table(name = "account")
 public class AccountEntity {
@@ -26,7 +26,7 @@ public class AccountEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long id;
-	private long accountNo;
+	private Long accountNo;
 	private int currentBalance;
 	private String accountType;
 	private LocalDateTime createdDate;

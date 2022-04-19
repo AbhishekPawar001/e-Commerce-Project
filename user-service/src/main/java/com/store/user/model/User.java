@@ -22,12 +22,14 @@ public class User {
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Long userId;
 	private String name;
-	private int age;
-	private String gender;
 	private String email;
 	private String mobile;
+	private int age;
+	private String gender;
+	private String password;
 	private String address;
 	@Column(name = "local_date_time", columnDefinition = "TIMESTAMP")
 	private LocalDateTime timestamp;
+
 	
 }

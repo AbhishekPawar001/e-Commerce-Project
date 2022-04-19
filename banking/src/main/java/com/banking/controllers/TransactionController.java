@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.banking.entities.AccountEntity;
 import com.banking.entities.TransactionEntity;
 import com.banking.services.AccountService;
 import com.banking.services.TransactionService;
@@ -36,11 +37,24 @@ public class TransactionController {
 		accountService.updateAccountBalanceByAccountNo(newBalanceAccountFrom, transactionEntity.getFromAccountNo(), transactionEntity.getCreatedDate());
 		accountService.updateAccountBalanceByAccountNo(newBalanceAccountTo, transactionEntity.getToAccountNo(), transactionEntity.getCreatedDate());
 		
-		return transactionService.saveTransaction(transactionEntity);
+		TransactionEntity transaction = transactionService.saveTransaction(transactionEntity);
+		if(transaction != null) {
+			return transactionService.saveTransaction(transactionEntity);
+		}
+		return null;
+	}
+	
+	@GetMapping("/checkAccountNumber/{accountNumber}")
+	public String checkAccountNumber(@PathVariable("accountNumber") Long accountNumber) {
+		AccountEntity accountEntity = accountService.checkAccountNumber(accountNumber);
+		if(accountEntity == null)
+			return null;
+		else
+			return "validAccountNo";
 	}
 	
 	@GetMapping("/transaction_history/{month}/{year}/{account_no}")
-	public List<TransactionEntity> transactionHistory(@PathVariable int month, @PathVariable int year, @PathVariable long account_no) {
+	public List<TransactionEntity> transactionHistory(@PathVariable int month, @PathVariable int year, @PathVariable Long account_no) {
 		return transactionService.findByMonthAndYear(month, year, account_no);
 	}
 	

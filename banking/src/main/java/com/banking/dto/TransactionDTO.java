@@ -2,22 +2,22 @@ package com.banking.dto;
 
 public class TransactionDTO {
 	
-	private long fromAccountId;
-	private long toAccountId;
+	private Long fromAccountId;
+	private Long toAccountId;
 	private String comment;
 	private int amount;
 	private String createdDate;
 	
-	public long getFromAccountId() {
+	public Long getFromAccountId() {
 		return fromAccountId;
 	}
-	public void setFromAccountId(long fromAccountId) {
+	public void setFromAccountId(Long fromAccountId) {
 		this.fromAccountId = fromAccountId;
 	}
-	public long getToAccountId() {
+	public Long getToAccountId() {
 		return toAccountId;
 	}
-	public void setToAccountId(long toAccountId) {
+	public void setToAccountId(Long toAccountId) {
 		this.toAccountId = toAccountId;
 	}
 	public String getComment() {

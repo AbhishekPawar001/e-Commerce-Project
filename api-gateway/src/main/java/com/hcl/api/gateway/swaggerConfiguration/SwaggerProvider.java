@@ -3,46 +3,45 @@ package com.hcl.api.gateway.swaggerConfiguration;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.cloud.gateway.config.GatewayProperties;
-import org.springframework.cloud.gateway.route.RouteLocator;
-import org.springframework.cloud.gateway.support.NameUtils;
+import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
-import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import springfox.documentation.swagger.web.SwaggerResource;
 import springfox.documentation.swagger.web.SwaggerResourcesProvider;
 
+@Slf4j
 @Component
 @Primary
-@AllArgsConstructor
 public class SwaggerProvider implements SwaggerResourcesProvider {
     public static final String API_URI = "/v2/api-docs";
-    private final RouteLocator routeLocator;
-    private final GatewayProperties gatewayProperties;
-
-
+private final RouteDefinitionLocator routeLocator;
+    
+    public SwaggerProvider(RouteDefinitionLocator routeLocator) {
+        this.routeLocator = routeLocator;
+    }
+    
     @Override
+    
     public List<SwaggerResource> get() {
         List<SwaggerResource> resources = new ArrayList<>();
-        List<String> routes = new ArrayList<>();
-       //Remove the route of the gateway
-        routeLocator.getRoutes().subscribe(route -> routes.add(route.getId()));
-       //Combine the configured route-path (Path) and route filtering to obtain only valid route nodes
-        gatewayProperties.getRoutes().stream().filter(routeDefinition -> routes.contains(routeDefinition.getId()))
-                .forEach(routeDefinition -> routeDefinition.getPredicates().stream()
-                        .filter(predicateDefinition -> ("Path").equalsIgnoreCase(predicateDefinition.getName()))
-                        .forEach(predicateDefinition -> resources.add(swaggerResource(routeDefinition.getId(),
-                                predicateDefinition.getArgs().get(NameUtils.GENERATED_NAME_PREFIX + "0")
-                                        .replace("/**", API_URI)))));
+        routeLocator.getRouteDefinitions().subscribe(routeDefinition -> {
+            log.info("Discovered route definition: {}", routeDefinition.getId());
+            String resourceName = routeDefinition.getId();
+            String location = routeDefinition.getPredicates().get(0).getArgs().get("_genkey_0").replace("/**", API_URI);
+            log.info("Adding swagger resource: {} with location {}", resourceName, location);
+            resources.add(swaggerResource(resourceName, location));
+        });
+        
         return resources;
     }
-
+    
     private SwaggerResource swaggerResource(String name, String location) {
         SwaggerResource swaggerResource = new SwaggerResource();
         swaggerResource.setName(name);
         swaggerResource.setLocation(location);
         swaggerResource.setSwaggerVersion("2.0");
-        return swaggerResource;
+        return swaggerResource;    
     }
 }

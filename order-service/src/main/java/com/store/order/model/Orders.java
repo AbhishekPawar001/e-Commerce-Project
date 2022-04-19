@@ -11,7 +11,6 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
-import javax.persistence.Transient;
 
 import com.store.order.dto.OrderDTO;
 
@@ -29,8 +28,6 @@ public class Orders {
 	private Long orderId;
 	private Long userId;
 	private LocalDateTime orderDate;
-	@Transient
-	private Long accountNumber;
 	
 	@JoinColumn(name = "order_id")
 	@OneToMany(cascade = CascadeType.ALL)
@@ -38,7 +35,6 @@ public class Orders {
 	
 	public Orders(OrderDTO orderDTO) {
 		this.userId = orderDTO.getUserId();
-		this.accountNumber = orderDTO.getAccountNumber();
 		this.products = orderDTO.getProducts();
 		this.orderDate = LocalDateTime.now();
 	}
