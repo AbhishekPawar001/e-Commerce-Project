@@ -10,8 +10,7 @@ import org.springframework.stereotype.Service;
 import com.store.order.dto.OrderDTO;
 import com.store.order.dto.PaymentDTO;
 import com.store.order.dto.ProductDTO;
-import com.store.order.exceptions.OrderNotFoundException;
-import com.store.order.exceptions.UserNotFoundException;
+import com.store.order.exceptions.ResourceNotFoundException;
 import com.store.order.feignClients.BankFeignClient;
 import com.store.order.feignClients.ProductFeignClient;
 import com.store.order.feignClients.UserFeignClient;
@@ -41,7 +40,7 @@ public class OrderServiceImpl implements OrderService{
 	private BankFeignClient bankFeignClient;
 	
 	@Override
-	public String saveOrder(OrderRequest orderRequest) throws UserNotFoundException {
+	public String saveOrder(OrderRequest orderRequest) throws ResourceNotFoundException {
 		Double grandTotal = (double) 0;
 		String msg = "";
 		log.info("Finding the user from User Service APi using feignClient");
@@ -56,11 +55,15 @@ public class OrderServiceImpl implements OrderService{
 				OrderItem orderItem = new OrderItem();
 				list.add(orderItem);
 				priceList = productFeignClient.getProductById(product.getProductId());
-				for (Double priceLists : priceList) {
-					grandTotal+= priceLists*product.getQuantity();
-					orderItem.setProductPrice(priceLists);
-					orderItem.setProductId(product.getProductId());
-					orderItem.setQuantity(product.getQuantity());
+				if(priceList == null) {
+					throw new ResourceNotFoundException("Product", "id", product.getProductId());
+				} else {
+					for (Double priceLists : priceList) {
+						grandTotal+= priceLists*product.getQuantity();
+						orderItem.setProductPrice(priceLists);
+						orderItem.setProductId(product.getProductId());
+						orderItem.setQuantity(product.getQuantity());
+					}
 				}
 			}			
 			OrderDTO orderDTO = new OrderDTO(orderRequest.getUserId(),list);
@@ -72,25 +75,25 @@ public class OrderServiceImpl implements OrderService{
 			} else {
 				String value = bankFeignClient.checkAccountNumber(orderRequest.getAccountNumber());
 				if(value == null) {
-					throw new UserNotFoundException("Invalid! Account Details");
+					throw new ResourceNotFoundException("Account!", "AccountNumber", orderRequest.getAccountNumber());
 				} else {
 					PaymentDTO paymentDTO = new PaymentDTO(orderRequest.getAccountNumber(), grandTotal);
 					PaymentDTO payment = bankFeignClient.transfer(paymentDTO);
 					if(payment == null) {
 						msg = "payment failed please check your account details";
 					} else {
-						msg = "Order placed successfully for Order Id: "+order.getOrderId(); 
+						msg = "Order placed successfully for Order Id "+order.getOrderId(); 
 					}
 				}
 			}
 		} else {
-			throw new UserNotFoundException("User not registered with id: "+orderRequest.getUserId());
+			throw new ResourceNotFoundException("User", "id", orderRequest.getUserId());
 		}
 		return msg;
 	}
 	
 	@Override
-	public OrderResponse getOrderById(Long orderId) throws OrderNotFoundException {
+	public OrderResponse getOrderById(Long orderId) throws ResourceNotFoundException {
 		OrderResponse orderResponse;
 		Double grandTotal = (double) 0;
 		log.info("finding orders from Database");
@@ -115,7 +118,7 @@ public class OrderServiceImpl implements OrderService{
 			}
 			orderResponse = new OrderResponse(orders, grandTotal, productAOList);
 		} else {
-			throw new OrderNotFoundException("Order Not found with id: "+orderId);
+			throw new ResourceNotFoundException("Order", "id", orderId);
 		}
 		return orderResponse;
 	}

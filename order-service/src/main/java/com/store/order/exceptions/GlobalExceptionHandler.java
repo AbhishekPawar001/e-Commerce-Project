@@ -15,29 +15,21 @@ import lombok.extern.slf4j.Slf4j;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 	
-	@ExceptionHandler(MethodArgumentNotValidException.class)
+	@ExceptionHandler(MethodArgumentNotValidException.class)	
 	public ResponseEntity<Map<String, String>> handleInvalidArgumentExceptions(MethodArgumentNotValidException ex) {
 		log.info("customising and binding the MethodArgumentNotValidException and sending custom error messages");
 		Map<String, String> errMap = new HashMap<>();
 		ex.getBindingResult().getFieldErrors().forEach(error -> {
 			errMap.put(error.getField(), error.getDefaultMessage());
 		});
-		return new ResponseEntity<Map<String, String>>(errMap, HttpStatus.NOT_FOUND);
+		return new ResponseEntity<Map<String, String>>(errMap, HttpStatus.BAD_REQUEST);
 	}
 	
-	@ExceptionHandler(UserNotFoundException.class)
-	public ResponseEntity<Map<String, String>> handleUserNotFoundExceptions(UserNotFoundException ex) {
-		log.info("defining user not found custom exceptions");
-		Map<String, String> errMap = new HashMap<>();
-		errMap.put("errorMessage", ex.getMessage());
-		return new ResponseEntity<Map<String, String>>(errMap, HttpStatus.NOT_FOUND);
-	}
-	
-	@ExceptionHandler(OrderNotFoundException.class)
-	public ResponseEntity<Map<String, String>> handleOrderNotFoundExceptions(OrderNotFoundException ex) {
-		log.info("defining order not found custom exceptions");
-		Map<String, String> errMap = new HashMap<>();
-		errMap.put("errorMessage", ex.getMessage());
-		return new ResponseEntity<Map<String, String>>(errMap, HttpStatus.NOT_FOUND);
+	@ExceptionHandler(ResourceNotFoundException.class)
+	public ResponseEntity<ErrorResponse> resourceNotFoundExceptionHandler(ResourceNotFoundException ex) {
+		log.info("defining Resource not found custom exceptions");
+		String message = ex.getMessage();
+		ErrorResponse apiResponse = new ErrorResponse(message, false);
+		return new ResponseEntity<ErrorResponse>(apiResponse, HttpStatus.NOT_FOUND);
 	}
 }

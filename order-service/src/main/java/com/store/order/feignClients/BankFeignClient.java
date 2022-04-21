@@ -7,13 +7,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import com.store.order.dto.PaymentDTO;
-import com.store.order.exceptions.UserNotFoundException;
 
 @FeignClient(name = "http://BANK-SERVICE/transaction")
 public interface BankFeignClient {
 	
 	@PostMapping("/transfer")
-	public PaymentDTO transfer(@RequestBody PaymentDTO paymentDTO) throws UserNotFoundException;
+	public PaymentDTO transfer(@RequestBody PaymentDTO paymentDTO);
 	
 	@GetMapping("/checkAccountNumber/{accountNumber}")
 	public String checkAccountNumber(@PathVariable("accountNumber") Long accountNumber);

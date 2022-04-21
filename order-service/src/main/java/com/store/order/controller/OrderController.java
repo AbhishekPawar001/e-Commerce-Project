@@ -12,8 +12,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.store.order.exceptions.OrderNotFoundException;
-import com.store.order.exceptions.UserNotFoundException;
 import com.store.order.service.OrderService;
 import com.store.order.vo.OrderRequest;
 import com.store.order.vo.OrderResponse;
@@ -29,13 +27,13 @@ public class OrderController {
 	private OrderService orderService;
 	
 	@PostMapping("/saveOrder")
-	public ResponseEntity<String> saveOrder(@Valid @RequestBody OrderRequest orderRequest) throws UserNotFoundException{
+	public ResponseEntity<String> saveOrder(@Valid @RequestBody OrderRequest orderRequest){
 		log.info("saving the ordes in Database");
 		return new ResponseEntity<>(orderService.saveOrder(orderRequest), HttpStatus.CREATED);
 	}
 	
 	@GetMapping("/{id}")
-	public ResponseEntity<OrderResponse> getOrderById(@PathVariable("id") Long orderId) throws OrderNotFoundException{
+	public ResponseEntity<OrderResponse> getOrderById(@PathVariable("id") Long orderId){
 		log.info("get the list of ordes from Database");
 		return new ResponseEntity<OrderResponse>(orderService.getOrderById(orderId), HttpStatus.OK);
 	}

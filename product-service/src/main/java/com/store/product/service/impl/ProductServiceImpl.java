@@ -11,6 +11,7 @@ import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
 
 import com.store.product.exceptions.ProductNotFoundException;
+import com.store.product.exceptions.ResourceNotFoundException;
 import com.store.product.model.Product;
 import com.store.product.service.ProductService;
 
@@ -39,7 +40,7 @@ public class ProductServiceImpl {
 		List<Product> products = productService.getProductById(productId);
 		List<Double> priceList = new ArrayList<Double>();
 		if(products.isEmpty()) {
-			throw new ProductNotFoundException("Product not found");
+			return null;
 		} else {
 			for(Product productList : products) {
 				priceList.add(productList.getPrice());
