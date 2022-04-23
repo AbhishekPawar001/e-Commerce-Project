@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.client.circuitbreaker.CircuitBreaker;
+import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;
 import org.springframework.stereotype.Service;
 
 import com.store.order.dto.OrderDTO;
@@ -30,6 +32,8 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class OrderServiceImpl implements OrderService{
 	
+	@Autowired
+	CircuitBreakerFactory circuitBreakerFactory;
 	@Autowired
 	private OrderRepository orderRepository;
 	@Autowired
@@ -94,19 +98,20 @@ public class OrderServiceImpl implements OrderService{
 	
 	@Override
 	public OrderResponse getOrderById(Long orderId) throws ResourceNotFoundException {
+		CircuitBreaker circuitBreaker = circuitBreakerFactory.create("circuitbreaker");
 		OrderResponse orderResponse;
 		Double grandTotal = (double) 0;
 		log.info("finding orders from Database");
 		Optional<Orders> order = orderRepository.findByOrderId(orderId);
-		List<ProductDTO> productAOList = new ArrayList<ProductDTO>();
+		List<ProductDTO> productDTOList = new ArrayList<ProductDTO>();
 		if(order.isPresent()) {
 			log.info("check whether the order is present in database or not");
 			Orders orders = order.get();
 			log.info("using feignClient get all the produtcs from database");
 			for(OrderItem orderList : orders.getProducts()) {
 				ProductDTO productDTO = new ProductDTO();
-				productAOList.add(productDTO);
-				List<Product> productList = productFeignClient.getAllProductById(orderList.getProductId());
+				productDTOList.add(productDTO);
+				List<Product> productList = circuitBreaker.run(()-> productFeignClient.getAllProductById(orderList.getProductId()), throwable -> fallbackMethod());
 				for(Product list : productList) {
 					grandTotal+= list.getPrice()*orderList.getQuantity();
 					productDTO.setProductId(list.getProductId());
@@ -116,10 +121,14 @@ public class OrderServiceImpl implements OrderService{
 					productDTO.setQuantity(orderList.getQuantity());
 				}
 			}
-			orderResponse = new OrderResponse(orders, grandTotal, productAOList);
+			orderResponse = new OrderResponse(orders, grandTotal, productDTOList);
 		} else {
 			throw new ResourceNotFoundException("Order", "id", orderId);
 		}
 		return orderResponse;
+	}
+	
+	public List<Product> fallbackMethod() {
+		throw new ResourceNotFoundException("Currently Service is down please try again later");
 	}
 }
