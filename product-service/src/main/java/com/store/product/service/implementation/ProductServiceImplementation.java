@@ -1,17 +1,16 @@
 package com.store.product.service.implementation;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
 
+import com.store.product.exceptions.ProductNotFoundException;
 import com.store.product.model.Product;
 import com.store.product.service.ProductService;
 
@@ -21,12 +20,12 @@ public class ProductServiceImplementation {
 	@Autowired
 	private ProductService productService;
 	
-	public List<Product> getProductByProductName(String productName, Integer page) {
+	public List<Product> getProductByProductName(String productName, Integer page) throws ProductNotFoundException {
 		Pageable pageable1 = PageRequest.of(page, 3, Sort.by(Direction.ASC, "productName"));
 		return productService.getProductByProductName(productName, pageable1);
 	}
 	
-	public List<Double> getProductById(Long productId) {
+	public List<Double> getProductById(Long productId) throws ProductNotFoundException {
 		List<Product> products = productService.getProductById(productId);
 		List<Double> priceList = new ArrayList<Double>();
 		for(Product productList : products) {
@@ -35,7 +34,7 @@ public class ProductServiceImplementation {
 		return priceList;
 	}
 
-	public List<Product> getAllProductById(Long productId) {
+	public List<Product> getAllProductById(Long productId) throws ProductNotFoundException {
 		return productService.getAllProducts(productId);
 	}
 
